@@ -1,24 +1,27 @@
-import sys
+# import sys
 import subprocess
 import os
 import platform
 import bpy
 
-def isWindows():
+
+def is_windows():
     return os.name == 'nt'
 
-def isMacOS():
+
+def is_macos():
     return os.name == 'posix' and platform.system() == "Darwin"
 
-def isLinux():
+
+def is_linux():
     return os.name == 'posix' and platform.system() == "Linux"
 
+
 def python_exec():
-    
-    if isWindows():
+    if is_windows():
         import sys
         return os.path.join(sys.prefix, 'bin', 'python.exe')
-    elif isMacOS():
+    elif is_macos():
         import sys
         try:
             # 2.92 and older
@@ -27,22 +30,26 @@ def python_exec():
             # 2.93 and later
             path = sys.executable
         return os.path.abspath(path)
-    elif isLinux():
+    elif is_linux():
         import sys
         return os.path.join(sys.prefix, 'bin', 'python3.11')
     else:
         print("sorry, still not implemented for ", os.name, " - ", platform.system)
 
 
-def installModule(packageName):
+def install_modules(packages):
     python_exe = python_exec()
+
     try:
-        subprocess.call([python_exe, "import ", packageName])
-    except:
-       # upgrade pip
+        # upgrade pip
         subprocess.call([python_exe, "-m", "ensurepip"])
         subprocess.call([python_exe, "-m", "pip", "install", "--upgrade", "pip"])
-       # install required packages
-        subprocess.call([python_exe, "-m", "pip", "install", packageName])
-        
-installModule("pygame")
+        # install required packages
+        subprocess.call([python_exe, "-m", "pip", "install", *packages, "--upgrade", "-y"])
+    except subprocess.CalledProcessError as e:
+        print("Error installing packages:", e)
+    except Exception as e:
+        print("Generic error", e)
+
+
+install_modules(["astropy"])
